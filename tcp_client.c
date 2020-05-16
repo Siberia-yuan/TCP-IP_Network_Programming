@@ -8,6 +8,12 @@
 void error_handling(char *args);
 
 int main(int argc,char *argv[]){
+    char message[30];
+    int str_len=0;
+    int idx=0;
+    int read_len=0;
+
+
     if(argc!=3){
         printf("Usage:%s <ip> <port>",argv[0]);
         exit(1);
@@ -20,6 +26,24 @@ int main(int argc,char *argv[]){
     serv_addr.sin_addr.s_addr=inet_addr(argv[1]);
     serv_addr.sin_port=htons(atoi(argv[2]));
 
+    sock=socket(PF_INET,SOCK_STREAM,NULL);
+    if(sock==-1){
+        error_handling("socket() error");
+    }
+
+    if(connect(sock,(struct sockaddr *)&serv_addr,sizeof(serv_addr))==-1){
+        error_handling("connect error");
+    }
+
+    while(read_len=read(sock,&message[idx++],1)){
+        if(read_len==-1)
+            error_handling("rea() error");
+        str_len+=read_len;
+    }
+    printf("message form server: %s\n",message);
+    printf("read call count: %d\n",str_len);
+    close(sock);
+    return 0;
 }
 
 
