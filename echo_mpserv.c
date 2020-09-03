@@ -1,3 +1,11 @@
+/**
+ * 套接字资源为操作系统独自占有
+ * 即便fork了一个进程多个文件描述符指向同一个套接字
+ * 
+ * io分割：拆分成多个进程，一个进程负责接受数据，另一个进程负责发送数据
+ * 
+*/
+
 #include<stdio.h>
 #include<stdlib.h>
 #include<string.h>
@@ -38,9 +46,7 @@ int main(int argc,char* argv[]){
     signal(SIGCHLD,handing_child);
 
     //initiallization of server socket
-    if(socket(server_sock,AF_INET,SOCK_STREAM)==-1){
-        error_handling("socket() error");
-    }
+    server_sock=socket(PF_INET,SOCK_STREAM,0);
 
     if(bind(server_sock,(const struct sockaddr*)&serverAddr,sizeof(serverAddr))==-1){
         error_handling("bind() error");
@@ -90,8 +96,10 @@ void handling_int(int sig){
 
 void handing_child(int sig){
     int status;
+    int pid;
     if(sig==SIGCHLD){
-        waitpid(-1,&status,WNOHANG);
+        pid=waitpid(-1,&status,WNOHANG);
+        printf("child process removed with pid:%d\n",pid);
     }
     return;
 }
@@ -99,5 +107,5 @@ void handing_child(int sig){
 void error_handling(char* message){
     fputs(message,stderr);
     fputc('\n',stderr);
-    return;
+    exit(1);
 }
